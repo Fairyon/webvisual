@@ -9,6 +9,68 @@
 <link rel="import" href="../bower_components/paper-shadow/paper-shadow.html">
 <link rel="import" href="../bower_components/paper-button/paper-button-base.html">
 
+<<<<<<< HEAD
+<polymer-element name="post-card" attributes="raised recenteringTouch fill" extends="paper-button-base" role="button" touch-action='none'>
+  <template>
+    <style>
+      :host {
+        position: relative;
+        background: #ffffff;
+        color: #1d1d1d;
+        border-radius: 5px;
+        overlay: hidden;
+        display: inline-block;
+        z-index: 0;
+        box-sizing: border-box;
+        padding: 8px;
+        margin: 4px;
+        outline: none;
+      }
+
+      :host(:hover) {
+        /*background-color: rgba(118, 193, 123, 0.15);*/
+        outline: none;
+      }
+
+      div {
+        line-height: 1em;
+      }
+
+      #bg, #shadow {
+        border-radius: inherit;
+      }
+
+      #ripple {
+        color: #669db4;
+        pointer-events: none;
+      }
+
+      #head {
+        font-size: 0.7rem;
+        margin-left: 1rem;
+
+      }
+      #cardmenu {
+        width: 40px;
+      }
+
+      #cardcontentsection {
+        color: #333333;
+        background: rgba(255, 255, 255, 0);
+        height: 100%;
+      }
+
+    </style>
+
+
+    <paper-shadow id="shadow" z="1" fit animated></paper-shadow>
+
+    <section id="cardmain" class="button-content" relative layout horizontal center-center>
+
+      <section id="cardcontentsection" vertical layout>
+
+        <div id="head">{{headline}}</div>
+=======
 <polymer-element name="post-card" extends="paper-button-base" role="button">
   <template>
     <link rel="stylesheet" type='text/css' href="../css/elements/post-card.css">
@@ -22,6 +84,7 @@
         <template if={{headline}}>
           <div id="head">{{headline}}</div>
         </template>
+>>>>>>> develop
         <div id="cardcontent">
 
           <content></content>
@@ -57,10 +120,15 @@
 
     publish: {
       headline: "",
+<<<<<<< HEAD
+      recenteringTouch: true,
+      editable: false
+=======
       recenteringTouch: false,
       editable: false,
       raised: true,
       fill: true
+>>>>>>> develop
     },
 
     toggleMenu: function() {

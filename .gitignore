@@ -5,6 +5,12 @@
 # src/config.json
 
 # Some folders #
+<<<<<<< HEAD
+src/build
+src/public-dep
+src/public-src
+=======
+>>>>>>> develop
 
 # Node Stuff #
 src/node_modules
@@ -21,4 +27,7 @@ src/test/OLD/*.txt
 
 # Mail login #
 src/config/mail.json
+<<<<<<< HEAD
+=======
 *.prefs
+>>>>>>> develop
