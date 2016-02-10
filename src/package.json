@@ -28,7 +28,8 @@
     "socket.io": "*",
     "underscore": "*",
     "winston": "*",
-    "x-frame-options": "*"
+    "x-frame-options": "*",
+    "mongoose": "*"
   },
   "devDependencies": {},
   "engines": {
