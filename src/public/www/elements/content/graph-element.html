@@ -1,0 +1,335 @@
+<!-- Dependent to be content of diagram-container -->
+<!-- Using d3.js-library -->
+
+<link rel='import' href='../behaviors/element-behavior.html'>
+<dom-module id='graph-element'>
+  <style include="app-theme">
+    :host {
+      --element-color: var(--primary-color);
+    }
+  </style>
+  <script>
+
+    DiagramGraph = Polymer({
+      is: 'graph-element',
+
+      behaviors: [ElementBehavior],
+
+      properties: {
+        values: {
+          type: Array,
+          value: function() { return []; }
+        },
+        color: {
+          type: String,
+          value: '',
+          observer: 'setColor'
+        },
+        interpolation: {
+          type: String,
+          value: 'Monotoner Spline',
+          observer: '_interpolationChanged'
+        },
+        hidden: {
+          type: Boolean,
+          value: false,
+          observer: '_hiddenChanged'
+        },
+        noDots: {
+          type: Boolean,
+          value: false,
+          observer: '_dotsChanged'
+        },
+        noLine: {
+          type: Boolean,
+          value: false,
+          observer: '_lineChanged'
+        },
+        noFill: {
+          type: Boolean,
+          value: false,
+          observer: '_fillChanged'
+        },
+        dotRadius: {
+          type: Number,
+          value: 2.5,
+          observer: '_dotRadiusChanged'
+        },
+        lineWidth: {
+          type: Number,
+          value: 1.5,
+          observer: '_lineWidthChanged'
+        },
+        fillOpacity: {
+          type: Number,
+          value: 0.25,
+          observer: '_fillOpacityChanged'
+        },
+        _rangeX: {
+          type: Array,
+          value: function() { return []; }
+        },
+        _rangeY: {
+          type: Array,
+          value: function() { return []; }
+        },
+        _node: Object,
+        _dots: Object,
+        _line: Object,
+        _lineFunction: Object,
+        _area: Object,
+        _areaFunction: Object
+      },
+
+      get containerRoot () {
+        var root = Polymer.dom(this).getOwnerRoot();
+
+        if (!root)
+          return Polymer.dom(this).parentNode;
+        else if (root.nodeType == Node.DOCUMENT_FRAGMENT_NODE)
+          return root.host;
+        else {
+          root
+        }
+      },
+
+      get _self () {
+        return this;
+      },
+
+      get _values () {
+        return this.values;
+      },
+
+      created: function() {
+        this._lineFunction = d3.area()
+                               .x( (function (d) { return this.chartElement._x(d.x); }).bind(this))
+                               .y( (function (d) { return this.chartElement._y(d.y); }).bind(this));
+        this._areaFunction = d3.area()
+                               .x( this._lineFunction.x() )
+                               .y0( (function (d) { return this.chartElement._y(1e-15); }).bind(this) )
+                               .y1( this._lineFunction.y() );
+      },
+
+      attached: function () {
+        this.chartElement = this.containerRoot;
+        if (this.chartElement._elements.indexOf(this) === -1)
+          this.chartElement._elements.push(this);
+
+        if (this.chartElement.nodeName !== 'CHART-ELEMENT') {
+          console.warn(this.id, 'Graph is not attached to a container');
+        }
+        // clippath for this graph
+        this._node = this.chartElement._chart.select('g#graphs')
+                                             .append('svg:g')
+                                             .attr('clip-path', 'url(#clip)')
+                                             .attr('class', 'graph')
+                                             .attr('id', this.id)
+                                             .attr('label', this.label);
+        // node of line
+        this._line = this._node.append('svg:path')
+                               .attr("class", "line")
+                               .attr('hidden', this.noLine ? true : null)
+                               .attr('fill', 'none')
+                               .attr('stroke', this.color)
+                               .attr('stroke-width', this.lineWidth)
+                               .datum([])
+                               .attr("d", this._lineFunction);
+        // fill area
+        this._area = this._node.append('svg:path')
+                               .attr("class", "area")
+                               .attr('hidden', this.noFill ? true : null)
+                               .attr('fill', this.color)
+                               .attr('fill-opacity', this.fillOpacity)
+                               .attr('stroke', 'none')
+                               .datum([])
+                               .attr("d", this._areaFunction);
+        // group of dots
+        this._dots = this._node.append("svg:g")
+                               .attr("class", "dots")
+                               .attr("hidden", this.noDots ? true : null);
+
+        // this.chartElement._addLegendEntry(this.getElement);
+
+        // set Values
+        if (this.values.length > 0) this.setValues(this.values);
+      },
+
+      detached: function() {
+        this._node.node().parentElement.removeChild(this._node.node());
+
+        if (this.notUpdatable === false &&
+            window.UpdatableNodes !== undefined &&
+            UpdatableNodes[this.label] &&
+            UpdatableNodes[this.label][this.id] &&
+            (pos = UpdatableNodes[this.label][this.id].indexOf(this)) !== -1)
+          UpdatableNodes[this.label][this.id].splice(pos,1);
+      },
+
+      redraw: function () {
+        if (this._hidden === true) return;
+
+        var dots = this._dots.selectAll('circle.dot')
+                             .data(this.values);
+        // update current dots
+        dots.attr('cx', (function(d,i) {
+              return this.chartElement._x(d.x)}).bind(this._self))
+            .attr('cy', (function(d,i) {
+              return this.chartElement._y(d.y)}).bind(this._self))
+        // enter new dots
+        dots.enter()
+            .append('circle')
+              .attr('class', 'dot')
+              .attr('r', this.dotRadius).attr('fill', '#FFF')
+              .attr('stroke', this.color).attr('stroke-width', this.lineWidth)
+              .attr('cx', (function(d,i) {
+                return this.chartElement._x(d.x)}).bind(this._self))
+              .attr('cy', (function(d,i) {
+                return this.chartElement._y(d.y)}).bind(this._self));
+              // .on('mouseenter', (function(d) {
+              //   this.chartElement._updateInfo(d)
+              // }).bind(this._self));
+        //  remove old dots
+        dots.exit()
+            .remove();
+        // update line, animated http://bl.ocks.org/benjchristensen/1148374
+        // var dx = 1;
+        // if (this.values.length > 1)
+        //   dx = this.chartElement._x(this.values[this.values.length - 1].x) -this.chartElement._x(this.values[this.values.length - 2].x);
+        this._line
+            .attr('d', this._lineFunction(this.values));
+        // .data([this.values]) // set the new data
+				// 	.attr("transform", "translate(" + dx + ")") // set the transform to the right by x(1) pixels (6 for the scale we've set) to hide the new value
+				// 	.attr("d", this._lineFunction) // apply the new data values ... but the new value is hidden at this point off the right of the canvas
+				// 	.transition() // start a transition to bring the new value into view
+				// 	.duration(1000) // for this demo we want a continual slide so set this to the same as the setInterval amount below
+				// 	.attr("transform", "translate(" + 0 + ")");
+        this._area.attr('d', this._areaFunction(this.values));
+      },
+
+      setValues: function (values, newestDataLast) {
+        this.set('values', values);
+
+        if (this.chartElement)
+          // for (i= values.length-1; i>= 0; i)
+          //   this._updateView(values[i]);
+          this._updateView(undefined, Object);
+      },
+
+      unshiftValues: function(value) {
+        if (this.values.length === 0) {
+          this.setValues([value]);
+          return;
+        }
+        this.unshift('values', value);
+        if (this.chartElement)
+          this._updateView(value);
+      },
+
+      _updateView: function (value, splices) {
+        if ( value !== undefined && value.y < 0 &&
+            (this.chartElement.yScale === "ln" ||
+             this.chartElement.yScale === "log₁₀")) {
+          console.warn("ValueError: value in logarithmic scale below 0");
+          return;
+        }
+        this._setRange(value);
+        this.chartElement.redraw();
+      },
+
+      _setRange: function(value) {
+        if (value !== undefined && this._rangeX.length === 2 && this._rangeY.length === 2) {
+          this._rangeX[0] = (value.x < this._rangeX[0]) ? value.x : (this.values[this.values.length-1].x > this._rangeX[0]) ? this.values[this.values.length-1].x : this._rangeX[0];
+          this._rangeX[1] = (this._rangeX[1] < value.x) ? value.x : this._rangeX[1];
+          this._rangeY[0] = (value.y < this._rangeY[0]) ? value.y : this._rangeY[0];
+          this._rangeY[1] = (this._rangeY[1] < value.y) ? value.y : this._rangeY[1];
+        }
+        else {
+          this._rangeX = []; this._rangeY = [];
+          this._rangeX.push(d3.min(this.values, function(v){ return v.x; }));
+          this._rangeX.push(d3.max(this.values, function(v){ return v.x; }));
+          this._rangeY.push(d3.min(this.values, function(v){ return v.y; }));
+          this._rangeY.push(d3.max(this.values, function(v){ return v.y; }));
+        }
+      },
+
+      setColor: function(color) {
+        // random color if color is not set
+        ElementBehavior.setColor.call(this, color);
+        if (this._node) {
+          if (this._line) this._line.attr('stroke', this.color);
+          if (this._area) this._line.attr('fill', this.color);
+          if (this._dots)
+            this._dots.selectAll('circle.dot')
+                      .attr('stroke', this.color);
+        }
+      },
+
+      _hiddenChanged: function() {
+        if (this._node) {
+          this._node.attr('hidden', this.hidden ? true : null);
+        }
+      },
+
+      _dotsChanged: function() {
+        if (this._node && this._dots) {
+          this._dots.attr('hidden', this.noDots ? true : null);
+        }
+      },
+
+      _lineChanged: function() {
+        if (this._node && this._line) {
+          this._line.attr('hidden', this.noLine ? true : null);
+        }
+      },
+
+      _fillOpacityChanged: function() {
+        if (this._node && this._area) {
+          this._area.attr('fill-opacity', this.fillOpacity);
+        }
+      },
+
+      _fillChanged: function() {
+        if (this._node && this._area) {
+          this._area.attr('hidden', this.noFill ? true : null);
+        }
+      },
+
+      _dotRadiusChanged: function(dotRadius) {
+        if (this._node && this._dots) {
+          this._dots.selectAll('circle.dot').attr('r', dotRadius);
+        }
+      },
+
+      _lineWidthChanged: function(lineWidth) {
+        if (this._node) {
+          if (this._line) this._line.attr('stroke-width', this.lineWidth);
+          if (this._dots)
+            this._dots.selectAll('circle.dot')
+                      .attr('stroke-width', this.lineWidth);
+        }
+      },
+
+      _interpolationChanged: function(interpolation) {
+        var curve;
+        switch (interpolation) {
+          case 'Basis Spline': curve = d3.curveBasis; break;
+          case 'Monotoner Spline': curve = d3.curveMonotoneX; break;
+          case 'Kubischer Spline': curve = d3.curveNatural; break;
+          case 'Cardinaler Spline': curve = d3.curveCardinal; break;
+          case 'Catmull-Rom-Spline': curve = d3.curveCatmullRom; break;
+          case 'Stufe (mitte)': curve = d3.curveStep; break;
+          case 'Stufe (davor)': curve = d3.curveStepAfter; break;
+          case 'Stufe (danach)': curve = d3.curveStepBefore; break;
+          default: curve = d3.curveLinear; break;
+        }
+        this._lineFunction.curve(curve);
+        this._areaFunction.curve(curve);
+        if (this._node && this._area)
+          this.redraw();
+      }
+    });
+
+  </script>
+
+</dom-module>

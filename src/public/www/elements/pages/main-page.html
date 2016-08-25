@@ -1,0 +1,716 @@
+<link rel="import" href="../../style/main-page-style.html"/>
+
+<dom-module id="main-page">
+
+  <template>
+  <style include="main-page-style">
+    :host {
+      font-size: 1em;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      width: 100%;
+      left: 0;
+      top: 0;
+      position: absolute;
+      pointer-events: all !important;
+    }
+    section#toolbarFooter ::content sign-element {
+      border: none;
+    }
+    section#toolbarFooter ::content .toolbar-footer {
+      /*display: flex;*/
+      border-right: thin solid #BBBBBB;
+      border-radius: 8px;
+      z-index: 100;
+      height: 100%;
+      position: relative;
+    }
+    /*section#toolbarFooter ::content .toolbar-footer:last-child {
+      border-right: none;
+    }*/
+    section#toolbarFooter ::content [element] {
+      flex-shrink: 0;
+    }
+    section#toolbarFooter ::content [dark] {
+      border-color: #808080;
+    }
+    section#toolbarFooter ::content svg-element {
+      background: rgba(255,255,255,0.2);
+      border-top: thin solid #669DB4;
+      border-bottom: thin solid #669DB4;
+    }
+    section#toolbarFooter ::content svg-element[dark] {
+      border-top: thin solid #005B82 !important;
+      border-bottom: thin solid #005B82 !important;
+    }
+    section#toolbarFooter:not([opened]) ::content > * {
+      display: none;
+    }
+    section#mainContent ::content .panel {
+      height: 100%;
+      width: 100%;
+      top: 0;
+      left: 0;
+      position: absolute;
+      overflow-y: auto;
+      overflow-x: hidden;
+      box-sizing: border-box;
+      background: linear-gradient(rgba(255, 255, 255, 0),rgba(255,255,255,0.15));
+      color: currentColor;
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-content: flex-start;
+      -webkit-overflow-scrolling: touch;
+      -ms-flex: 1 1 0.000000001px; -webkit-flex: 1; flex: 1;
+      flex-basis: 0.000000001px; -webkit-flex-basis: 0.000000001px;
+      padding: 0.5em;
+      opacity: 1;
+    }
+    section#mainContent ::content .panel > * {
+      margin: 0.4em;
+    }
+    section#mainContent ::content .panel.foreground {
+      display: flex;
+    }
+    section#mainContent ::content .panel:not(.foreground) {
+      display: none;
+    }
+    section#mainContent ::content .panel.selected[animated] {
+      transition: opacity 150ms ease, transform 300ms ease;
+    }
+    section#mainContent ::content .panel:not(.selected)[animated] {
+      transition: opacity 300ms ease, transform 150ms ease;
+      opacity: 0;
+      transform: translateY(25%);
+      pointer-events: none;
+      z-index: 51;
+    }
+    section#groupingKeysLabelSelector {
+      display: flex;
+      flex-direction: column;
+    }
+    section#groupingKeysLabelSelector ::content iron-selector.groupingKeySelector {
+      display: flex;
+      flex-direction: column;
+    }
+    section#groupingKeysLabelSelector ::content iron-selector.groupingKeySelector:not(.foreground){
+      display: none;
+    }
+    section#groupingKeysLabelSelector ::content radio-button-element {
+      font-size: 0.9em;
+    }
+    section#labelsTabs {
+      margin-left: 36px;
+      height: 62%;
+      align-self: flex-end;
+      flex: 2;
+      font-family: Fira Sans Light;
+      font-size: 0.85em;
+    }
+    section#labelsTabs ::content tab-element.label.iron-selected {
+      background: linear-gradient(to top, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0.15));
+      color: #f1f1f1;
+    }
+    section#labelsTabs ::content tab-element.label:hover:not(.iron-selected){
+      background: linear-gradient(to top, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04));
+    }
+    section#labelsTabs ::content tab-element.label.iron-selected[dark]{
+      background: linear-gradient(to top, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.08));
+      color: #A8CCDB;
+    }
+    @media all and (max-width: 520px) {
+      section#mainContent ::content .panel {
+        display: block;
+        padding: 0em;
+      }
+      group-card {
+        padding: 0em;
+        border-radius: 0em;
+        width: 100%;
+      }
+      section#toolbarHeader icon-button-element.menu-icon {
+        margin-right: 12px;
+        margin-left: 12px;
+      }
+      section#toolbarHeader section.logo-element-placeholder {
+        min-width: 44px !important;
+        flex: 0;
+      }
+      logo-element#logo {
+        width: 44px !important;
+        left: 64px !important;
+      }
+      section#labelsTabs {
+        margin-left: 12px !important;
+      }
+    }
+    @media all and (max-width: 419px) {
+      section#toolbarHeader icon-button-element.expand-icon {
+        display: none;
+      }
+    }
+    @media all and (max-height: 519px)  {
+      section#toolbarHeader icon-button-element.expand-icon {
+        display: none;
+      }
+    }
+    @media all and (min-width: 520px) and (max-width: 600px){
+      section#toolbarHeader icon-button-element.menu-icon {
+        margin-right: 16px;
+        margin-left: 16px;
+      }
+      logo-element#logo {
+        left: 72px !important;
+      }
+      section#toolbarHeader section#labelsTabs {
+        margin-left: 20px !important;
+      }
+    }
+    @media all and (max-width: 600px) {
+      section#toolbarFooter[opened] {
+        max-height: 32vh;
+      }
+      :host {
+        font-size: 0.9em;
+      }
+    }
+    @media all and (max-height: 690px) {
+      section#toolbarFooter[opened] {
+        max-height: 32vh;
+      }
+    }
+    @media all and (min-width: 601px) {
+      section#toolbarFooter[dark] .caption {
+        border-top: none;
+      }
+      section#toolbarFooter .caption {
+        border-top: none;
+      }
+    }
+  </style>
+
+    <logo-element id="logo" on-tap="backToMainMenu"></logo-element>
+    <!-- TOOLBAR -->
+    <section id="toolbar">
+      <section id="toolbarBackground"></section>
+      <section id="toolbarHeader">
+        <icon-button-element icon="menu" class="menu-icon" on-tap="toggleDrawer"></icon-button-element>
+
+        <section class="logo-element-placeholder"></section>
+
+        <section id="labelsTabs">
+          <iron-selector id="labelSelector" selected="{{currentLabel}}" attr-for-selected="label">
+            <content select="tab-element.label"></content>
+          </iron-selector>
+        </section>
+
+        <section id="control">
+          <icon-button-element icon="error-outline" class="error control" on-tap="toggleExceedsPanel" hidden$="[[!isExceeding]]"></icon-button-element>
+          <section hidden$="[[!_computeOpened(opened, forceOpened)]]" style="display: flex;">
+            <icon-button-element icon="[[_computeExpandIcon(expanded)]]" class="expand-icon" on-tap="_toolbarExpand"></icon-button-element>
+            <icon-button-element icon="remove" hidden$="[[forceOpened]]" class="toggle-icon control" on-tap="clearSelectedElements"></icon-button-element>
+          </section>
+        </section>
+      </section>
+
+      <section id="toolbarFooter" opened$="[[_computeOpened(opened, forceOpened)]]" expanded$="[[expanded]]">
+        <content select=".toolbar-footer"></content>
+        </section>
+      </section>
+    </section>
+
+    <section id="mainView">
+        <!-- Content -->
+        <section id="mainContent">
+          <content select=".panel"></content>
+        </section>
+
+        <section id="backdrop" on-tap="closeDrawer"></section>
+        <section id="dropShadow" class="has-shadow"></section>
+
+      <!-- EXCEEDING -->
+      <section id="exceedsPanel">
+        <section id="exceedsHeader" on-tap="toggleExceedsPanel">
+          <button-element class="title"><iron-icon icon="warning" class="left"></iron-icon><section class="content">Alarme</section></button-element>
+        </section>
+
+        <swipeable-container id="exceedingElementsList"
+                         is-exceeding="{{isExceeding}}"
+                         notify-parent="{{!noExceedNotify}}"
+                         no-select-notify>
+        </swipeable-container>
+
+        <section style="padding: 0em 0.75em 0.75em 0.75em; float: right;"><a href="#" on-click="_clearExceedingElementsFromList">Liste leeren</a></section>
+      </section>
+
+      <!-- SIDEMENU -->
+      <section id="drawerPanel">
+        <button-element collapse-id="settings" class="sidemenu collapsable" on-tap="toggleCollapse">
+          <iron-icon icon="settings" class="left"></iron-icon>
+          <section class="content">Einstellungen</section>
+          <iron-icon icon="arrow-drop-up" class="right" id="settings"></iron-icon>
+        </button-element>
+
+          <iron-collapse class="sidemenu collapse settings" opened>
+            <section class="indention collapse-content">
+              <button-element collapse-id="grouping" class="sidemenu" on-tap="toggleCollapse">
+                <iron-icon icon="reorder" class="left"></iron-icon>
+                <section class="content">Gruppierung</section>
+                <iron-icon icon="arrow-drop-down" class="right" id="grouping"></iron-icon>
+              </button-element>
+                <iron-collapse class="sidemenu collapse grouping">
+                  <section id="groupingKeysButtons" class="indention">
+                    <section id="groupingKeysLabelSelector">
+                      <content select="iron-selector.groupingKeySelector"></content>
+                    </section>
+                  </section>
+                </iron-collapse>
+
+              <toggle-button-element on-change="toggleDateView"><iron-icon icon="date-range"></iron-icon>Zeit anzeigen</toggle-button-element>
+              <toggle-button-element on-change="toggleWindowDecoration" checked="{{withoutWindow}}"><iron-icon icon="editor:border-style"></iron-icon>Fensterrahmen</toggle-button-element>
+              <toggle-button-element on-change="toggleWindowHeader" checked="{{hideHeader}}"><iron-icon icon="editor:drag-handle"></iron-icon>Fenstertitel</toggle-button-element>
+              <toggle-button-element id="colorschema" on-change="toggleTheme"><iron-icon icon="settings-brightness"></iron-icon>Farbschema</toggle-button-element>
+            </section>
+          </iron-collapse>
+
+        <button-element class="sidemenu" on-tap="backToMainMenu">
+          <iron-icon icon="arrow-back" class="left"></iron-icon>
+          <section class="content">Auswahl</section>
+        </button-element>
+
+      </section>
+    </section>
+
+    <section id="overlay">
+      <content select=".overlay"></content>
+    </section>
+
+  </template>
+
+  <script>
+    var ExceedingSvgPaths = {};
+    Polymer({
+      is: 'main-page',
+
+      behaviors: [
+        ContainerBehavior,
+        Polymer.IronResizableBehavior,
+        Polymer.NeonSharedElementAnimatableBehavior
+      ],
+
+      properties: {
+        sharedElements: {
+          value: function() {
+            return {
+              'herologo': this.$.logo
+            }
+          }
+        },
+        animationConfig: {
+          value: function() {
+            return {
+              'entry': [
+                {
+                  name: 'hero-animation',
+                  id: 'herologo',
+                  toPage: this,
+                },
+                {
+                  animatable: this.$.logo,
+                  type: 'loading'
+                }
+              ],
+              'exit': [
+                {
+                  name: 'scale-down-animation',
+                  node: this
+                }
+              ]
+            }
+          }
+        },
+
+        // Attribute for toolbar is opened
+
+        forceOpened: {
+          type: Boolean,
+          value: false
+        },
+        expanded: {
+          type: Boolean,
+          value: false
+        },
+        currentLabel: {
+          type: Number,
+          value: 0,
+          observer: "_currentLabelChanged"
+        },
+        // Element Appearance
+        withoutWindow: {
+          type: Boolean,
+          value: false
+        },
+        hideHeader: {
+          type: Boolean,
+          value: false
+        },
+        dark: {
+          type: Boolean,
+          value: false
+        },
+        showDate: {
+          type: Boolean,
+          value: false
+        },
+        noGrouping: {
+          type: Boolean,
+          value: false
+        },
+
+        animated: {
+          type: Boolean,
+          value: false,
+          reflectToAttribute: true
+        },
+
+        openOnSelect: {
+          type: Boolean,
+          value: true
+        },
+        openOnExceed: {
+          type: Boolean,
+          value: false
+        },
+
+        notify: {
+          type: Boolean,
+          value: false
+        },
+        notifyParent: {
+          type: Boolean,
+          value: false
+        },
+        noSelectNotify: {
+          type: Boolean,
+          value: false
+        },
+        noExceedNotify: {
+          type: Boolean,
+          value: false
+        },
+
+        reproduce: {
+          type: Boolean,
+          value: false
+        },
+        reproductionContainer: {
+          type: String,
+          value: 'toolbarFooter'
+        },
+
+        isExceeding: {
+          type: Boolean,
+          value: false,
+          observer: '_handleExceeding'
+        }
+      },
+
+      observers: [
+        // '_setToolbarElement(selectedElements.splices)',
+        // '_handleExceeding(exceedingElements.splices)'
+      ],
+
+      attached: function() {
+        this.fire('resize');
+        var self = this;
+        Polymer.dom(this.$.groupingKeysLabelSelector)
+               .observeNodes(function(info) {
+                 for (var i in info.addedNodes)
+                  if (info.addedNodes[i].nodeName === "IRON-SELECTOR")
+                    info.addedNodes[i].addEventListener("iron-select", function(e){
+                      self._regroup(e.currentTarget.selected);
+                    });
+               });
+        Polymer.dom(this.$.mainContent)
+               .observeNodes( function(info) {
+                 if (info.addedNodes.length > 0) {
+                    self.set("currentLabel", Labels[0]);
+                 }
+               });
+        // Notifications
+        if (!("Notification" in window)) {
+          console.warn("This browser does not support desktop notification");
+        }
+        //  ask the user for permission
+        else if (Notification.permission !== 'denied') {
+          Notification.requestPermission(function (permission) {
+            // If the user accepts, let's create a notification
+            if (permission === "granted") {
+              var notification = new Notification("Notifikationen aktiv", {icon: '../../img/icons/webicon.png', body: '', tag: ''});
+            }
+          });
+        }
+      },
+
+      _handleExceeding: function(value) {
+        if(value && !(this.$.exceedsPanel.classList.contains("exceeds-panel-opened"))) {
+          this.openExceedsPanel();
+          this.debounceExceedsNotification();
+        }
+        else if (this.$.exceedingElementsList.exceedingElements.length === 0) {
+          this.closeExceedsPanel();
+        }
+      },
+      // app Control
+      backToMainMenu: function() {
+        this.closeDrawer();
+        PageSelector.select("0");
+      },
+      // Panel Control
+      _currentLabelChanged: function(newLabel, oldLabel) {
+        this._selectPanel(newLabel, oldLabel);
+        this.clearSelectedElements();
+      },
+      _selectPanel: function(newLabel, oldLabel) {
+        var newIndex = 0, oldIndex;
+        var content = this.$.mainContent.children;
+        var groupingkeys = this.$.groupingKeysLabelSelector.children;
+
+        for (var i = 0; i < content.length; i++) {
+          if (content[i].getAttribute('label') === newLabel)
+            newIndex = i;
+          else if (oldLabel && content[i].getAttribute('label') === oldLabel)
+            oldIndex = i;
+        }
+
+        if (groupingkeys[newIndex])
+          groupingkeys[newIndex].classList.add("foreground");
+        content[newIndex].classList.add("foreground");
+        if (oldIndex !== undefined && content[oldIndex].getAttribute('hidden') === "true") {
+          content[newIndex].classList.add("selected");
+          content[oldIndex].classList.remove("foreground");
+          content[oldIndex].classList.remove("selected");
+          if (groupingkeys[oldIndex])
+            groupingkeys[oldIndex].classList.remove("foreground");
+        }
+        else if (this.animated) {
+          if (oldIndex !== undefined) {
+              content[oldIndex].addEventListener("transitionend", function(e) {
+                content[newIndex].classList.add("selected");
+                content[oldIndex].classList.remove("foreground");
+                content[oldIndex].removeEventListener(e.type, arguments.callee);
+              });
+            content[oldIndex].classList.remove("selected");
+            if (groupingkeys[oldIndex])
+              groupingkeys[oldIndex].classList.remove("foreground");
+          }
+          else
+            content[newIndex].classList.add("selected");
+        }
+        else {
+          content[newIndex].classList.add("selected");
+          if (oldIndex !== undefined) {
+            content[oldIndex].classList.remove("foreground");
+            content[oldIndex].classList.remove("selected");
+            if (groupingkeys[oldIndex])
+              groupingkeys[oldIndex].classList.remove("foreground");
+          }
+        }
+      },
+      dissemblePanels: function(labels) {
+        var content = this.$.mainContent.children;
+        var tabs = this.$.labelSelector.children;
+        var groupingkeys = this.$.groupingKeysLabelSelector.children;
+        var newLabel;
+
+        if (labels.length > 1)
+          this.$.labelsTabs.style.visibility = "visible";
+        else
+          this.$.labelsTabs.style.visibility = "hidden";
+
+        for (var i = 0; i < content.length; i++) {
+          if (labels.indexOf(content[i].getAttribute('label')) === -1) {
+            content[i].setAttribute("hidden", true);
+            tabs[i].setAttribute("hidden", true);
+            if (groupingkeys[i])
+              groupingkeys[i].setAttribute("hidden", true);
+          }
+          else {
+            if (!newLabel)
+              newLabel = content[i].getAttribute('label');
+            content[i].removeAttribute("hidden");
+            tabs[i].removeAttribute("hidden");
+            if (groupingkeys[i])
+              groupingkeys[i].removeAttribute("hidden");
+          }
+        }
+        this.set("currentLabel", newLabel);
+      },
+      // Grouping Options
+      _regroup: function(key) {
+        var label = this.currentLabel;
+        if (!label || !key || !Groups[label][key] || PreferedGroupingKeys[label] == key)
+          return;
+
+        PreferedGroupingKeys[label] = key;
+        var panel = this.queryEffectiveChildren('.panel[label="'+label+'"]');
+        var oldgroupcards = Polymer.dom(panel).getEffectiveChildNodes();
+
+        var elements = [];
+        for (var i = 0; i < oldgroupcards.length; i++) {
+          elements = elements.concat([].slice.call(oldgroupcards[i].querySelectorAll('[element]')));
+        }
+        var hideHeader = oldgroupcards[0].hideHeader;
+        var withoutWindow = oldgroupcards[0].withoutWindow;
+
+        var newgroupcards = {};
+        for (var subgroup in Groups[label][key]) {
+          newgroupcards[subgroup] = new GroupCard(subgroup, Groups[label][key][subgroup].svg, this.dark, withoutWindow, hideHeader);
+          Polymer.dom(panel).appendChild(newgroupcards[subgroup]);
+          for (var i in Groups[label][key][subgroup].ids) {
+            for (var j = 0; j < elements.length; j++) {
+              elements[j].preferedKey = key;
+              if (elements[j].id === Groups[label][key][subgroup].ids[i])
+                break;
+            }
+            if (j !== elements.length) {
+               Polymer.dom(newgroupcards[subgroup]).appendChild(elements[j]);
+            }
+          }
+        }
+        for (var i=0; i < oldgroupcards.length; i++) {
+           Polymer.dom(panel).removeChild(oldgroupcards[i]);
+        }
+        Polymer.dom.flush();
+      },
+
+      _clearExceedingElementsFromList: function() {
+        this.$.exceedingElementsList.clearExceedingElements();
+        this.closeExceedsPanel();
+      },
+
+      debounceExceedsNotification: function() {
+        this.debounce('exceedsNotification',
+          function() {
+            this.createExceedsNotification();
+          }, 500);
+      },
+
+      createExceedsNotification: function() {
+        if (Notification.permission !== 'denied') {
+          var count = this.exceedingElements.length;
+          var msg = '';
+
+          var notification = new Notification(count + ' Elemente im Alarmzustand',
+            { icon: '../../img/icons/warning.png',
+              body: msg,
+              tag: msg });
+        }
+      },
+
+      toggleTheme: function(){
+        var elems = document.querySelectorAll('*');
+        if(this.dark === true) {
+          for (i = 0; i < elems.length; ++i) {
+            elems[i].removeAttribute("dark");
+          }
+          this.set("dark", false);
+        }
+        else {
+          for (i = 0; i < elems.length; ++i) {
+            elems[i].setAttribute("dark", true);
+          }
+          this.set("dark", true);
+        }
+        this.updateStyles();
+      },
+      toggleWindowDecoration: function(){
+        var elems = document.querySelectorAll('group-card');
+        for (i = 0; i < elems.length; ++i) {
+          elems[i].toggleAttribute("without-window");
+        }
+      },
+      toggleWindowHeader: function(){
+        var elems = document.querySelectorAll('group-card');
+        for (i = 0; i < elems.length; ++i) {
+          elems[i].toggleAttribute("hide-header");
+        }
+      },
+      toggleDateView: function(){
+        var elems = document.querySelectorAll('[updatable]');
+        for (i = 0; i < elems.length; ++i) {
+          elems[i].toggleAttribute("show-date");
+        }
+      },
+      toggleCollapse: function(e){
+        var button = e.currentTarget;
+        if (!button.hasAttribute('collapse-id')) {
+          return;
+        }
+        var id = button.getAttribute('collapse-id');
+        var collapse = Polymer.dom(this.root).querySelector('iron-collapse.'+id);
+        var iconbutton = Polymer.dom(button).querySelector('iron-icon.right');
+        if (collapse) {
+          collapse.toggle();
+          if (iconbutton) {
+            if (iconbutton.icon === 'arrow-drop-down')
+              iconbutton.set('icon','arrow-drop-up');
+            else
+              iconbutton.set('icon','arrow-drop-down');
+          }
+        }
+      },
+      // Toolbar Actions
+      _toolbarExpand: function() {
+        if (this.opened || this.forceOpened) {
+          this.set('expanded', !this.expanded);
+          this.toggleAttribute('expanded', this.expanded, this.$.toolbarFooter);
+          // this.$.elementForToolbarSVG._debounceResetZoom();
+
+          var elements = this.queryAllEffectiveChildren('sign-element.toolbar-footer');
+          elements.forEach(function(el) {
+            if (this.expanded === true)
+              el.removeAttribute('horizontal');
+            else
+              el.setAttribute('horizontal', true);
+          }, this);
+
+          this.async(function() {this.fire('resize')}, 150);
+        }
+      },
+      _closeToolbar: function(newLabel, oldLabel) {
+        this.clearSelectedElements();
+        this.opened = false;
+      },
+      _computeOpened: function(opened, forceOpened) {
+        return opened || forceOpened;
+      },
+      _computeExpandIcon: function() {
+        if (this.expanded)
+          return 'expand-less';
+        else
+          return 'expand-more';
+      },
+      // Panel Control
+      openExceedsPanel: function() {
+        this.$.exceedsPanel.classList.add("exceeds-panel-opened");
+      },
+      closeExceedsPanel: function() {
+        this.$.exceedsPanel.classList.remove("exceeds-panel-opened");
+      },
+      toggleExceedsPanel: function() {
+        this.$.exceedsPanel.classList.toggle("exceeds-panel-opened");
+      },
+      toggleDrawer: function(){
+        this.$.drawerPanel.classList.toggle("drawer-opened");
+        this.$.backdrop.classList.toggle("backdrop-opened");
+      },
+      closeDrawer: function(){
+        this.$.drawerPanel.classList.remove("drawer-opened");
+        this.$.backdrop.classList.remove("backdrop-opened");
+      }
+    });
+  </script>
+</dom-module>

@@ -1,17 +1,19 @@
 # Packaged Stuff #
 *.exe
+dist/*
 
-# Config files
-src/config/config.json
+# Config files #
 .settings/*
 .jshintrc
 .project
 
 # Bower Components #
-src/public/components/*
-!src/public/components/README.md
+node_modules/*
+src/public/www/components/*
+!src/public/www/components/README.md
 
 # Node Modules #
+node_modules/*
 src/node_modules/*
 !src/node_modules/README.md
 
@@ -23,6 +25,7 @@ data/db/*
 src/public/maps
 src/**/test/
 !src/tests/
+!src/public/www/test/
 
 # Logs #
 *.log
@@ -43,8 +46,12 @@ src/ssl/*
 !src/ssl/default/
 !src/ssl/README.md
 
+# Distributions #
+dist/*
+
 *.prefs
 
 *.workspace
 .tern-project
 *.tern-port
+*.log

@@ -1,0 +1,308 @@
+<script>
+  ContainerBehavior = {
+
+    properties: {
+        opened: {
+          type: Boolean,
+          value: false,
+          reflectToAttribute: true
+        },
+        openOnSelect: {
+          type: Boolean,
+          value: false
+        },
+        openOnExceed: {
+          type: Boolean,
+          value: false
+        },
+        forceOpened: {
+          type: Boolean,
+          value: false
+        },
+
+        isExceeding: {
+          type: Boolean,
+          value: false,
+          notify: true,
+          observer: "_handleExceeding"
+        },
+
+        notify: {
+          type: Boolean,
+          value: false
+        },
+        notifyParent: {
+          type: Boolean,
+          value: false
+        },
+        noSelectNotify: {
+          type: Boolean,
+          value: false
+        },
+        noExceedNotify: {
+          type: Boolean,
+          value: false
+        },
+
+        multiSelect: {
+          type: Boolean,
+          value: false
+        },
+        toggles: {
+          type: Boolean,
+          value: false
+        },
+
+        reproduce: {
+          type: Boolean,
+          value: false
+        },
+        reproductionContainer: {
+          type: String
+        },
+
+        selectedElements: {
+          type: Array,
+          value: function() { return []; }
+        },
+        exceedingElements: {
+          type: Array,
+          value: function() { return []; }
+        }
+    },
+    _elements: [],
+
+    hostAttributes: {
+      container: true
+    },
+
+    get rootElement () {
+      var rootNode = Polymer.dom(this).getOwnerRoot();
+      if (rootNode === null)
+        rootNode = Polymer.dom(this.parentNode).getOwnerRoot();
+      if (rootNode && rootNode.host)
+        return rootNode.host;
+      else
+        return this.parentNode;
+    },
+
+    observers: [
+      '_reproductionRepeat(selectedElements.splices)',
+      '_reproductionRepeat(exceedingElements.splices)'
+    ],
+
+    detached: function(){
+      this.unlisten(this, 'element-select', '__setSelectedElement');
+      this.unlisten(this, 'element-deselect', '__unsetSelectedElement');
+      this.unlisten(this.rootElement, 'element-select', '__setSelectedElement');
+      this.unlisten(this.rootElement, 'element-deselect', '__unsetSelectedElement');
+    },
+
+    attached: function(){
+      if (this.notify === true) {
+        if (this.noSelectNotify === false) {
+          this.listen(this, 'element-select', '__setSelectedElement');
+          this.listen(this, 'element-deselect', '__unsetSelectedElement');
+        }
+        if (this.noExceedNotify === false) {
+          this.listen(this, 'element-is-exceeding', '__setExceedingElement');
+          this.listen(this, 'element-is-not-exceeding', '__unsetExceedingElement');
+        }
+      }
+      if (this.notifyParent === true) {
+        if (this.noSelectNotify === false) {
+          this.listen(this.rootElement, 'element-select', '__setSelectedElement');
+          this.listen(this.rootElement, 'element-deselect', '__unsetSelectedElement');
+        }
+        if (this.noExceedNotify === false) {
+          this.listen(this.rootElement, 'element-is-exceeding', '__setExceedingElement');
+          this.listen(this.rootElement, 'element-is-not-exceeding', '__unsetExceedingElement');
+        }
+      }
+    },
+
+    __setSelectedElement: function(e) {
+      if (e && e.detail && e.detail.target) this.setSelectedElement(e.detail.target);
+      else return;
+    },
+
+    setSelectedElement: function(element) {
+      if (this.noSelectNotify === true) return;
+      if (this.multiSelect === true) {
+        if (this.indexOf(this.selectedElements, element) === -1) {
+          this.push("selectedElements", element);
+        }
+        else if (this.toggles === true)
+          this.unsetSelectedElement(element);
+      }
+      else {
+        this.splice("selectedElements", 0, this.selectedElements.length);
+        this.push('selectedElements', element);
+      }
+
+      if(this.noExceedNotify === false && element.isExceeding) {
+        this.setExceedingElement(element);
+      }
+
+      this.opened = this.forceOpened || (this.openOnSelect === true && this.selectedElements.length > 0) ? true : false;
+    },
+
+    __unsetSelectedElement: function(e) {
+      if (e && e.detail && e.detail.target) this.unsetSelectedElement(e.detail.target);
+      else return;
+    },
+
+    unsetSelectedElement: function(element) {
+      if (this.noSelectNotify === true) return;
+
+      var pos = this.indexOf(this.selectedElements, element);
+      if (pos !== -1) {
+        element.checked = false;
+        this.splice("selectedElements", pos, 1);
+      }
+
+      if (this.multiSelect === false) {
+        this.selectedElements.forEach(function(item) { item.checked = false });
+      }
+
+      this.opened = this.forceOpened || (this.openOnSelect === true && this.selectedElements.length > 0) ? true : false;
+    },
+
+    clearSelectedElements: function() {
+      if (!this.selectedElements) return;
+      this.selectedElements.forEach(function(item) { item.checked = false });
+      this.splice("selectedElements", 0, this.selectedElements.length);
+    },
+
+    __setExceedingElement: function(e) {
+      if (e && e.detail && e.detail.target) this.setExceedingElement(e.detail.target);
+      else return;
+    },
+
+    setExceedingElement: function(element) {
+      var pos = this.indexOf(this.exceedingElements, element);
+      if (pos === -1)
+        this.push("exceedingElements", element);
+
+      this.isExceeding = (this.exceedingElements.length > 0) ? true : false;
+      this.opened = this.forceOpened || (this.openOnExceed === true && this.isExceeding);
+    },
+
+    __unsetExceedingElement: function(e) {
+      if (e && e.detail && e.detail.target) this.unsetExceedingElement(e.detail.target);
+      else return;
+    },
+
+    unsetExceedingElement: function(element) {
+      var pos = this.indexOf(this.exceedingElements, element);
+      if (pos !== -1)
+        this.splice("exceedingElements", pos, 1);
+
+      this.isExceeding = (this.exceedingElements.length > 0) ? true : false;
+      this.opened = this.forceOpened || (this.openOnExceed === true && this.isExceeding);
+    },
+
+    clearExceedingElements: function() {
+      if (!this.exceedingElements) return;
+      this.splice("exceedingElements", 0, this.exceedingElements.length);
+      this.isExceeding = false;
+    },
+
+    _handleExceeding: function(value) {
+    },
+
+    _reproductionRepeat: function(changeRecord) {
+      if (changeRecord && changeRecord.indexSplices) {
+
+        var container = (this.reproductionContainer) ? Polymer.dom(this.root).querySelector('#'+this.reproductionContainer) || Polymer.dom(this) : Polymer.dom(this);
+
+        var index, items, item;
+        var items = Polymer.dom(container).getEffectiveChildNodes().filter( function(el) {
+                      return el.nodeType === Node.ELEMENT_NODE;
+                    });
+
+        var elements = items.filter( function(el) {
+                         return el.hasAttribute('element');
+                       });
+        var containers = items.filter( function(el) {
+                          return el.hasAttribute('container');
+                        });
+
+        for (var i=0; i < changeRecord.indexSplices.length; i++) {
+          for (var j = 0; j < changeRecord.indexSplices[i].removed.length; j++) {
+            item = changeRecord.indexSplices[i].removed[j];
+            // this._elements.filter( function(el) {
+            //                 return el.id === item.id && el.label === item.label;
+            //                })
+            //               .forEach( function(el) {
+            //                 console.log('unset', el);
+            //                 el.unsetElement();
+            //               }, this);
+            elements.filter( function(el) {
+                      return el.id === item.id && el.label === item.label;
+                     })
+                    .forEach( function(el) {
+                      el.unsetElement();
+                    }, this);
+            containers.forEach( function(el) {
+                        // containers should notify themselfes? "item.unsetSelectedElement(del);"
+                        el.unsetSelectedElement(item);
+                      }, this);
+          }
+
+          for (var j = 0; j < changeRecord.indexSplices[i].addedCount; j++) {
+            index = changeRecord.indexSplices[i].index + j;
+            item = changeRecord.indexSplices[i].object[index];
+            var element = item.getElement();
+
+            if (this.multiSelect === false)
+              elements.forEach( function(el) {
+                        el.setElement(element);
+                      });
+
+            containers.forEach(function(el) {
+                        el.setSelectedElement(item);
+                      }, this);
+
+            // var tagName = this.reproductionTagName || "";
+            // if (tagName !== "") {
+            //   var setted = this._elements.filter( function(el) {
+            //     return el.id === item.id && el.label === item.label });
+            //   if (setted.length !== 0) {
+            //     setted.forEach(function(el) {
+            //       el.setElement(element);
+            //       console.log('REset', element, this);
+            //     }, this);
+            //   }
+            //   else if (this._elements.length === 0 || this.multiSelect === true) {
+            //     var node = document.createElement(tagName.toLowerCase());
+            //     if (node.setElement)
+            //       node.setElement(element, this.reproductionElementOptions || {});
+            //     else if (node.setSelectedElement)
+            //       node.setSelectedElement(item);
+            //     console.log('set', element);
+            //     Polymer.dom(container).appendChild(node);
+            //     this._elements.push(node);
+            //   }
+            // }
+          }
+        }
+      }
+    },
+
+    _openedChanged: function() {
+      this.fire('resize');
+    },
+
+    indexOf: function(elements, item) {
+      var id = item.id;
+      var label = item.label;
+      for (var i in elements) {
+        if (elements[i].id === id && elements[i].label === label) {
+          return i;
+        }
+      }
+      return -1;
+    }
+  };
+</script>

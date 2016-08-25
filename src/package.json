@@ -1,17 +1,27 @@
 {
   "name": "webvisual",
-  "version": "0.6.0",
+  "version": "0.7.0",
+  "description": "Visualisierung von Sensordaten",
   "private": "true",
+  "homepage": "https://github.com/fooloomanzii/webvisual",
+  "author": "Johannes Brautzsch <hannes-b@web.de>",
+  "owner": "Forschungszentrum Jülich GmbH",
+  "contributors": [
+    "Johannes Brautzsch <hannes-b@web.de>",
+    "Alexander Diener",
+    "Sascha Wolff"
+  ],
+  "main": "main.js",
   "scripts": {
-    "prestart": "start /b mongod --dbpath ../data/db",
     "start": "node app.js",
     "stop": "taskkill /IM node.exe /F",
-    "poststop": "mongo admin --eval 'db.shutdownServer()'"
+    "postinstall": "bower update"
   },
   "dependencies": {
     "activedirectory": "^0.7.1",
     "async": "*",
     "body-parser": "*",
+    "chokidar": "^1.6.0",
     "cookie-parser": "*",
     "dateformat": "*",
     "express": "*",
@@ -20,14 +30,12 @@
     "fs": "*",
     "jade": "*",
     "merge-defaults": "*",
-    "moment": "*",
-    "morgan": "*",
     "net": "*",
     "passport": "*",
     "passport-local": "^1.0.0",
     "socket.io": "*",
     "underscore": "*",
-    "winston": "*",
+    "watchr": "*",
     "x-frame-options": "*"
   },
   "devDependencies": {},

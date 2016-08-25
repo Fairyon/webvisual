@@ -1,0 +1,87 @@
+<dom-module id='swipeable-container'>
+  <template>
+    <style>
+      iron-swipeable-container#content {
+        padding: 0.5em 0.5em 0.25em 0.5em;
+      }
+      iron-swipeable-container#content > list-element {
+        margin-bottom: 0.25em;
+        float: left;
+        clear: both;
+        width: 100%;
+      }
+    </style>
+
+    <iron-swipeable-container id='content' on-iron-swipe="_onSwipe">
+      <template is="dom-if" if="[[!noExceedNotify]]">
+        <template is="dom-repeat" items="{{exceedingElements}}">
+          <list-element id="[[item.id]]" label="[[item.label]]" caption-keys="{{item.captionKeys}}" keys="{{item.keys}}"
+                        color="[[item.color]]" values="[[item.values]]" is-boolean="[[item.isBoolean]]"  selectable show-date>
+          </list-element>
+        </template>
+      </template>
+      <template is="dom-if" if="[[!noSelectNotify]]">
+        <template is="dom-repeat" items="{{selectedElements}}">
+          <list-element id="[[item.id]]" label="[[item.label]]" caption-keys="[[item.captionKeys]]" keys="{{item.keys}}"
+                        color="[[item.color]]" values="[[item.values]]" is-boolean="[[item.isBoolean]]"
+                        is-exceeding="[[item.isExceeding]]" selectable show-date>
+          </list-element>
+        </template>
+      </template>
+    </iron-swipeable-container>
+
+  </template>
+  <script>
+    SwipeableContainer = Polymer({
+      is: 'swipeable-container',
+
+      behaviors: [
+        ContainerBehavior
+      ],
+
+      properties: {
+        multiSelect: {
+          type: Boolean,
+          value: true
+        },
+        toggles: {
+          type: Boolean,
+          value: false
+        },
+
+        notify: {
+          type: Boolean,
+          value: false
+        },
+        notifyParent: {
+          type: Boolean,
+          value: false
+        },
+        noSelectNotify: {
+          type: Boolean,
+          value: false
+        },
+        noExceedNotify: {
+          type: Boolean,
+          value: false
+        },
+
+        reproduce: {
+          type: Boolean,
+          value: false,
+          readOnly: true
+        }
+      },
+
+      _onSwipe: function(e) {
+        this.unsetExceedingElement(e)
+        this.async(function(){
+          if(this.$.content.children.length === 0) {
+            this.clearExceedingElements();
+          }
+        },15)
+      }
+
+    });
+  </script>
+</dom-module>

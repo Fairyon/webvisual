@@ -1,0 +1,283 @@
+{
+  "Temperatur (Testvisualisierung)": {
+
+    "connections": {
+      "file": {
+        "mode": "all",
+        "path": "./examples/datafile/cryostat_visu.txt",
+        "format": {
+          "dateFormat": "DD.MM.YYYY;hh:mm:ss",
+          "decimalSeparator": ".",
+          "valueSeparator": ";",
+          "dimensions": 1
+        }
+
+      }
+    },
+
+    "locals": {
+      "ignore": [5],
+      "types": [{
+          "id": "id1",
+          "keys": {
+            "Molekül": "SmFeAsO≈ 0.85",
+            "Sprungtemperatur": "<20K",
+            "Druck": "100 kPa",
+            "Gefahrenklasse": "reizend"
+          },
+          "isBoolean": false,
+          "threshold": {
+            "from": 0,
+            "to": 30
+          },
+          "unit": "K"
+        }, {
+          "id": "id2",
+          "keys": {
+            "Molekül": "CeFeAsO0.84F0.16",
+            "Sprungtemperatur": "<40K",
+            "Druck": "300 kPa",
+            "Gefahrenklasse": "reizend"
+          },
+          "isBoolean": false,
+          "threshold": {
+            "from": 0,
+            "to": 15
+          },
+          "unit": "K",
+          "color": "#14AFB6"
+        }, {
+          "id": "id3",
+          "keys": {
+            "Molekül": "YBa2Cu3O7",
+            "Sprungtemperatur": "<150K",
+            "Druck": "400 kPa"
+          },
+          "isBoolean": false,
+          "threshold": {
+            "from": 0,
+            "to": 60
+          },
+          "unit": "K",
+          "color": "#1464B6"
+        }, {
+          "id": "id4",
+          "keys": {
+            "Molekül": "NdFeAsO0.89F0.11",
+            "Sprungtemperatur": "<150K",
+            "Druck": "100 kPa"
+          },
+          "isBoolean": false,
+          "threshold": {
+            "from": 0,
+            "to": 50
+          },
+          "unit": "K",
+          "color": "#14B638"
+        }, {
+          "id": "id5",
+          "keys": {
+            "Molekül": "Hg0.8Tl0.2Ba2Ca2Cu3O8.33",
+            "Sprungtemperatur": "<150K",
+            "Druck": "200 kPa"
+          },
+          "isBoolean": false,
+          "threshold": {
+            "from": 0,
+            "to": 50
+          },
+          "unit": "K",
+          "color": "#6A14B6"
+        }
+      ],
+
+      "unnamedType": {
+        "id": "id",
+        "keys": {
+          "Molekül": "Molekül",
+          "Sprungtemperatur": "verschiedene Sprungtemperatur",
+          "Druck": "verschiedener Druck",
+          "Gefahrenklasse": "keine Gefahrenklasse"
+        },
+        "threshold": {
+          "from": null,
+          "to": null
+        },
+        "svg": {
+          "path": "",
+          "source": ""
+        },
+        "isBoolean": false,
+        "values": [{
+          "x": 0,
+          "y": 0,
+          "exceeds": null
+        }],
+        "color": "#B63614"
+      },
+
+      "groupingKeys": ["Molekül", "Gefahrenklasse", "Sprungtemperatur", "Druck", "*"],
+      "preferedGroupingKey": "*",
+
+      "exclusiveGroups": {
+        "Sprungtemperatur": {
+          "<50K": {
+            "ids": [
+              "id1",
+              "id2"
+            ]
+          }
+        }
+      }
+    }
+  },
+
+  "Druckmessung (Testvisualisierung)": {
+
+    "connections": {
+      "file": {
+        "mode": "all",
+        "path": "./examples/datafile/cryostat_visu2.txt",
+        "format": {
+          "dateFormat": "DD.MM.YYYY;hh:mm:ss",
+          "decimalSeparator": ".",
+          "valueSeparator": ";",
+          "dimensions": 1
+        }
+      }
+    },
+
+    "svg": {
+      "E0": {
+        "src": "",
+        "selectable": {
+          "Cabinets": "g#Cabinets path"
+        }
+      }
+    },
+
+    "locals": {
+      "ignore": [],
+      "types": [{
+          "id": "id1",
+          "keys": {
+            "Molekül": "SmFeAsO≈ 0.85",
+            "Sprungtemperatur": "<20K",
+            "Temperatur": "120K",
+            "Gefahrenklasse": "reizend"
+          },
+          "isBoolean": false,
+          "threshold": {
+            "from": 0,
+            "to": 30
+          },
+          "unit": "kPa",
+          "color": "#14AFB6"
+        }, {
+          "id": "id2",
+          "keys": {
+            "Molekül": "GdFeAsO0.85",
+            "Sprungtemperatur": "<40K",
+            "Temperatur": "130K",
+            "Gefahrenklasse": "reizend"
+          },
+          "isBoolean": false,
+          "threshold": {
+            "from": 0,
+            "to": 15
+          },
+          "unit": "MPa",
+          "color": "#1416B6"
+        }, {
+          "id": "id3",
+          "keys": {
+            "Molekül": "Tantal",
+            "Sprungtemperatur": "<150K",
+            "Temperatur": "170K"
+          },
+          "isBoolean": false,
+          "threshold": {
+            "from": 0,
+            "to": 60
+          },
+          "unit": "MPa",
+          "color": "#14B655"
+        }, {
+          "id": "id4",
+          "keys": {
+            "Molekül": "Technetium",
+            "Sprungtemperatur": "<150K",
+            "Temperatur": "170K"
+          },
+          "isBoolean": false,
+          "threshold": {
+            "from": 0,
+            "to": 50
+          },
+          "unit": "kPa",
+          "color": "#A9B614"
+        }, {
+          "id": "id5",
+          "keys": {
+            "Molekül": "PbMo6S8",
+            "Sprungtemperatur": "<150K",
+            "Temperatur": "170K"
+          },
+          "isBoolean": false,
+          "threshold": {
+            "from": 0,
+            "to": 50
+          },
+          "unit": "kPa"
+        }
+      ],
+
+      "unnamedType": {
+        "id": "id",
+        "keys": {
+          "Molekül": "Molekül",
+          "Sprungtemperatur": "verschiedene Sprungtemperatur",
+          "Temperatur": "Temperatur nicht exakt festgelegt",
+          "Gefahrenklasse": "keine Gefahrenklasse"
+        },
+        "threshold": {
+          "from": null,
+          "to": null
+        },
+        "svg": {
+          "path": "",
+          "source": ""
+        },
+        "isBoolean": false,
+        "values": [{
+          "x": 0,
+          "y": 0,
+          "exceeds": null
+        }],
+        "unit": "K",
+        "color": "#B61462"
+      },
+
+      "groupingKeys": ["Molekül", "Gefahrenklasse", "Sprungtemperatur", "Temperatur", "*"],
+      "preferedGroupingKey": "Molekül",
+
+      "exclusiveGroups": {
+        "Molekül": {
+          "metallische Supraleiter": {
+            "ids": [
+              "id3",
+              "id4",
+              "id5"
+            ]
+          },
+          "eisenhaltige Hochtemperatursupraleiter": {
+            "ids": [
+              "id1",
+              "id2"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

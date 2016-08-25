@@ -1,0 +1,52 @@
+{
+  "app": {
+    "width": 604,
+    "height": 692,
+    "autoHideMenuBar": true,
+    "acceptFirstMouse": true,
+    "webPreferences": {
+      "webSecurity": true
+    },
+    "x": 247,
+    "y": 332
+  },
+  "server": {
+    "port": {
+      "http": 80,
+      "https": 443
+    },
+    "auth": {
+      "required": false,
+      "suffix": "@fz-juelich.de",
+      "ldap": {
+        "url": "ibn-net.kfa-juelich.de",
+        "baseDN": "dc=ibn-net,dc=kfa-juelich,dc=de"
+      }
+    },
+    "logs": {
+      "http_server_log": "./logs/http-error.log",
+      "server_log": "./logs/server-error.log"
+    }
+  },
+  "userConfigFiles": {
+    "HNF-GDS": {
+      "path": ".\\examples\\config\\HNF_GDS.json",
+      "renderer": "Alarmzustände"
+    },
+    "cryostat": {
+      "path": ".\\examples\\config\\cryostat_visu.json",
+      "renderer": "Diagrammansicht"
+    }
+  },
+  "renderer": {
+    "Alarmzustände": {
+      "icon": "juelich:alarm",
+      "path": "alarm-view.jade"
+    },
+    "Diagrammansicht": {
+      "icon": "juelich:graph",
+      "path": "chart-view.jade"
+    }
+  },
+  "database": {}
+}

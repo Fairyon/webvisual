@@ -1,0 +1,368 @@
+<script>
+  ElementBehavior = {
+
+    properties: {
+        label: {
+          type: String,
+          value: '',
+          reflectToAttribute: true,
+          observer: '__hide'
+        },
+        id: {
+          type: String,
+          value: '',
+          reflectToAttribute: true,
+          observer: '__hide'
+        },
+        newestDataLast: {
+          type: Boolean,
+          value: false
+        },
+        keys: {
+          type: Object,
+          value: function() { return {}; }
+        },
+        captionKeys: {
+          type: Array,
+          value: function() { return []; }
+        },
+        values: {
+          type: Array,
+          value: function() { return []; }
+        },
+        firstExceeds: {
+          type: Array,
+          value: function() { return []; }
+        },
+        lastExceeds: {
+          type: Array,
+          value: function() { return []; }
+        },
+        isBoolean: {
+          type: Boolean,
+          value: false
+        },
+
+        svg: {
+          type: Object,
+          value: function() { return {}; }
+        },
+
+        preferedKey: {
+          type: String,
+          value: ''
+        },
+
+        notExceedable: {
+          type: Boolean,
+          value: false
+        },
+        isExceeding: {
+          type: Boolean,
+          value: false,
+          observer: '_handleExceeding'
+        },
+        hasExceeded: {
+          type: Boolean,
+          value: false,
+          observer: '_hasExceededChanged'
+        },
+
+        bubbles: {
+          type: Boolean,
+          value: false
+        },
+        notUpdatable: {
+          type: Boolean,
+          value: false,
+          observer: "_updatableChanged"
+        },
+
+        selectable: {
+          type: Boolean,
+          value: false
+        },
+        checked: {
+          type: Boolean,
+          value: false,
+          reflectToAttribute: true,
+          notify: true,
+          observer: 'checkedChanged'
+        },
+        toggles: {
+          type: Boolean,
+          value: true,
+          reflectToAttribute: true
+        },
+
+        color: {
+          type: String,
+          observer: "setColor"
+        }
+    },
+
+    attached: function(){
+      if (this.values.length > 0) {
+        this.setValues(this.values, this.newestDataLast);
+        this.setExceedingState(this.values[0].exceeds === true || this.values[0].exceeds === false, this.values[0].exceeds);
+      }
+    },
+
+    factoryImpl: function(obj) {
+      this.setElement(obj);
+    },
+
+    hostAttributes: {
+      element: true
+    },
+
+    getKey: function(key) {
+      return this.keys[key];
+    },
+
+    isEmptyCaption: function(key) {
+      if (!this.keys[key]) return true;
+      else return false;
+    },
+
+    setElement: function(obj, options) {
+      var pos;
+      if (this.notUpdatable === false && this.label && this.id &&
+          window.UpdatableNodes !== undefined &&
+          UpdatableNodes[this.label] &&
+          UpdatableNodes[this.label][this.id] &&
+          (pos = UpdatableNodes[this.label][this.id].indexOf(this)) !== -1) {
+        UpdatableNodes[this.label][this.id].splice(pos,1); // remove from UpdatableNodes
+        this.removeAttribute('updatable');
+      }
+      for (var key in obj.element) {
+        if (key !== 'values')
+          this.set(key, obj.element[key]);
+      }
+      for (var key in obj.properties) {
+        this.set(key, obj.properties[key].value);
+      }
+      for (var key in options) {
+        this.set(key, options[key]);
+      }
+      this.setValues(obj.element.values);
+      this.setExceedingState(obj.element.values[0].exceeds === true || obj.element.values[0].exceeds === false, obj.element.values[0].exceeds);
+      this._updatableChanged();
+    },
+
+    unsetElement: function() {
+      var pos;
+      if (this.notUpdatable === false && this.label && this.id &&
+          window.UpdatableNodes !== undefined &&
+          UpdatableNodes[this.label] &&
+          UpdatableNodes[this.label][this.id] &&
+          (pos = UpdatableNodes[this.label][this.id].indexOf(this)) !== -1) {
+        UpdatableNodes[this.label][this.id].splice(pos,1); // remove from UpdatableNodes
+        this.removeAttribute('updatable');
+      }
+      // this.spliceValues(0, this.values.length);
+    },
+
+    getElement: function() {
+      return { element: {
+                'id': this.id,
+                'label': this.label,
+                'keys': this.keys,
+                'captionKeys': this.captionKeys,
+                'isBoolean': this.isBoolean,
+                'unit': this.unit,
+                'svg': this.svg,
+                'firstExceeds': this.firstExceeds,
+                'lastExceeds': this.lastExceeds,
+                'values': this.values,
+                'notExceedable': this.notExceedable,
+                'isExceeding': this.isExceeding,
+                'preferedKey': this.preferedKey,
+                'color': this.color,
+                'values': this.values
+              }
+            };
+    },
+
+    unshiftValues: function(value) {
+      this.unshift('values', value);
+      this.checkExceedingState(value);
+      this._updateView(value);
+    },
+
+    pushValues: function(value) {
+      this.push('values', value);
+      this.checkExceedingState(value);
+      this._updateView(value);
+    },
+
+    __hide: function() {
+      if (this.id && this.label)
+        this.removeAttribute('hidden');
+      else
+        this.setAttribute('hidden', true);
+    },
+
+    spliceValues: function(start, length) {
+      var value = this.splice("values", start, length);
+      this._updateView(undefined, {start: start, length: length, value: value});
+    },
+
+    checkExceedingState: function(value) {
+      if (this.notExceedable === true) return;
+
+      if (value.exceeds === null) {
+        if(this.isExceeding !== false) {
+          this.setExceedingState(false, value.exceeds);
+          this._setLastExceeds(value);
+        }
+      }
+      else if (value.exceeds === true || value.exceeds === false) {
+        if(this.isExceeding === false) {
+          this.setExceedingState(true, value.exceeds);
+          this._setFirstExceeds(value);
+          if (this.hasExceeded === false)
+            this.set('hasExceeded', true);
+        }
+      }
+    },
+
+    setExceedingState: function(isExceeding, state) {
+      this.set('isExceeding', isExceeding);
+    },
+
+    _setFirstExceeds: function(value) {
+      this.firstExceeds.push(value);
+    },
+
+    _setLastExceeds: function(value) {
+      this.lastExceeds.push(value);
+    },
+
+    setValues: function(values, newestDataLast) {
+      if (newestDataLast === true || newestDataLast === false)
+        this.newestDataLast = newestDataLast;
+
+      if (newestDataLast) {
+        for (var i = 0; i < values.length; i++) {
+          this.checkExceedingState(values[i]);
+        }
+        this._updateView(values[values.length - 1]);
+      }
+      else {
+        for (var i = values.length - 1; i >= 0; i--) {
+          this.checkExceedingState(values[i]);
+        }
+        this._updateView(values[0]);
+      }
+      this.set("values", values);
+    },
+
+    _handleExceeding: function(isExceeding) {
+      if(this.notExceedable === false && this.bubbles === true) {
+        if (isExceeding === true)
+          this.fire('element-is-exceeding', {target: this});
+        else
+          this.fire('element-is-not-exceeding', {target: this});
+      }
+    },
+
+    _hasExceededChanged: function() {
+    },
+
+    setColor: function(color) {
+      // random color if color is not set
+      if (!color) {
+        if (this.notExceedable === false) {
+          this.color = "#51cc41";
+        }
+        else {
+          color = '#';
+          var perm = ['2C', 'F5'];
+          perm.push((4*Math.floor(Math.random()*64)).toString(16));
+          for (var i = 3; i > 0; i--) {
+            var pos = Math.floor(Math.random()*i);
+            color += ((perm[pos].length === 1) ? '0' : '') + perm[pos];
+            perm.splice(pos, 1);
+          }
+          this.color = color;
+        }
+      }
+      else {
+        this.customStyle['--element-color'] = this.color;
+        if (this.notExceedable === true) {
+          this.customStyle['--element-exceeds-undefined-color'] = this.color;
+          this.customStyle['--element-exceeds-true-color'] = this.color;
+          this.customStyle['--element-exceeds-false-color'] = this.color;
+        }
+        this.updateStyles();
+      }
+    },
+
+    reset: function() {
+      this.set('hasExceeded', false);
+    },
+
+    _updatableChanged: function() {
+      // sets a global Object 'UpdatableNodes', for updating the values of the elements
+      if (this.notUpdatable === false && this.label && this.id) {
+        this.setAttribute("updatable", true);
+        if (window.UpdatableNodes === undefined)
+          UpdatableNodes = {};
+        if (!UpdatableNodes[this.label])
+          UpdatableNodes[this.label] = {};
+        if (!UpdatableNodes[this.label][this.id])
+          UpdatableNodes[this.label][this.id] = [];
+        if (UpdatableNodes[this.label][this.id].indexOf(this) === -1)
+          UpdatableNodes[this.label][this.id].push(this);
+      }
+      else {
+        this.removeAttribute("updatable");
+        var pos;
+        if (window.UpdatableNodes !== undefined &&
+            UpdatableNodes[this.label] &&
+            UpdatableNodes[this.label][this.id] &&
+            (pos = UpdatableNodes[this.label][this.id].indexOf(this)) !== -1)
+          UpdatableNodes[this.label][this.id].splice(pos,1);
+      }
+    },
+
+    detached: function() {
+      if (this.notUpdatable === false &&
+          window.UpdatableNodes !== undefined &&
+          UpdatableNodes[this.label] &&
+          UpdatableNodes[this.label][this.id] &&
+          (pos = UpdatableNodes[this.label][this.id].indexOf(this)) !== -1)
+        UpdatableNodes[this.label][this.id].splice(pos,1);
+    },
+
+    checkedChanged: function(checked, old) {
+      if (old !== undefined && this.selectable === true) {
+        if (this.checked === false) {
+          this.fire('element-deselect', {target: this});
+        }
+        else if (this.checked === true){
+          this.fire('element-select', {target: this});
+        }
+        if (this._handleChecked)
+          this._handleChecked();
+      }
+    },
+
+    _select: function() {
+      if (this.selectable === true) {
+        if (this.toggles) {
+            if (this.checked) {
+              this.checked = false;
+            }
+            else {
+              this.checked = true;
+            }
+        }
+        else {
+          this.checked = true;
+        }
+      }
+    }
+  };
+</script>

@@ -1,0 +1,312 @@
+<!-- modification of polymer paper-dropdown -->
+<dom-module id="dropdown-element">
+  <template>
+    <style>
+      :host {
+        font-size: 0.8em;
+        display: block;
+        position: absolute;
+        outline: none;
+        z-index: 1010;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        -webkit-user-select: none;
+        user-select: none;
+        height: 0px;
+        --dropdown-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14),
+                           0 1px 5px 0 rgba(0, 0, 0, 0.12),
+                           0 3px 1px -2px rgba(0, 0, 0, 0.2);
+      }
+
+      section#dropdown {
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        transition-delay: 250ms;
+        transition: all 250ms ease;
+        opacity: 1;
+        visibility: visible;
+        color: var(--dropdown-text-color, --primary-text-color);
+        outline: none;
+        border-radius: inherit;
+        align-items: stretch;
+        align-content: stretch;
+        justify-content: center;
+        box-shadow: none;
+      }
+      section#dropdown[shadow] {
+        box-shadow: var(--dropdown-shadow);
+      }
+      section#dropdown[horizontal] {
+        flex-direction: row;
+      }
+      section#dropdown:not(.opened) {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+      }
+      section#dropdown section#background {
+        position: absolute;
+        border-radius: inherit;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: var(--dropdown-background, --background-0);
+        box-shadow: none;
+      }
+      section#dropdown ::content {
+        border-radius: 0px;
+      }
+    </style>
+
+    <section id="dropdown" horizontal$="[[horizontal]]" shadow$="[[!noShadow]]" on-transitionend="updatePosition">
+      <section id="background"></section>
+      <content></content>
+    </section>
+  </template>
+
+  <script>
+    Polymer({
+      is: 'dropdown-element',
+
+      behaviors: [Polymer.IronResizableBehavior],
+
+      properties: {
+
+        for: {
+          type: String,
+          observer: '_forChanged'
+        },
+        // options: 'left', 'right', 'bottom', 'top'
+        position: {
+          type: String,
+          value: 'bottom'
+        },
+
+        // options: 'start', 'center', 'end'
+        align: {
+          type: String,
+          value: 'start'
+        },
+
+        offset: {
+          type: Number,
+          value: 0
+        },
+
+        horizontal: {
+          type: Boolean,
+          value: false
+        },
+        backgroundOpacity: {
+          type: Number,
+          value: 1,
+          observer: "_opacityChanged"
+        },
+        noShadow: {
+          type: Boolean,
+          value: false
+        },
+        // e.g. tap
+        targetToggleEvent: {
+          type: String,
+          value: ""
+        },
+        // e.g. tap
+        targetShowingEvent: {
+          type: String,
+          value: ""
+        },
+        // e.g. iron-select
+        targetHidingEvent: {
+          type: String,
+          value: ""
+        },
+
+        opened: {
+          type: Boolean,
+          value: false,
+          observer: "_openedChanged"
+        }
+      },
+
+      hostAttributes: {
+        tabindex: '0'
+      },
+
+      listeners: {
+        'iron-resize': 'updatePosition',
+        'focus': 'show',
+        "keyup": "_keyHandler"
+      },
+
+      get target () {
+        var parentNode = Polymer.dom(this).parentNode;
+        var ownerRoot = Polymer.dom(this).getOwnerRoot();
+
+        var target;
+        if (this.for) {
+          target = Polymer.dom(ownerRoot).querySelector('#' + this.for);
+        } else {
+          target = parentNode.nodeType == Node.DOCUMENT_FRAGMENT_NODE ?
+              ownerRoot.host : parentNode;
+        }
+        return target;
+      },
+
+      attached: function() {
+        this._target = this.target;
+        if (this.targetToggleEvent !== "")
+          this.listen(this._target, this.targetToggleEvent, 'toggle');
+        if (this.targetShowingEvent !== "")
+          this.listen(this._target, this.targetShowingEvent, 'show');
+        if (this.targetHidingEvent !== "")
+          this.listen(this._target, this.targetHidingEvent, 'hide');
+      },
+
+      detached: function() {
+        if (this._target) {
+          if (this.targetShowingEvent !== "")
+            this.unlisten(this._target, this.targetShowingEvent, 'toggle');
+          if (this.targetToggleEvent !== "")
+            this.unlisten(this._target, this.targetToggleEvent, 'show');
+          if (this.targetHidingEvent !== "")
+            this.unlisten(this._target, this.targetHidingEvent, 'hide');
+        }
+      },
+
+      show: function() {
+        this.$.dropdown.removeAttribute("hidden");
+        this.$.dropdown.classList.add('opened');
+        this.updatePosition();
+      },
+      open: function() {
+        this.$.dropdown.removeAttribute("hidden");
+        this.$.dropdown.classList.add('opened');
+        this.updatePosition();
+      },
+      hide: function() {
+        this.$.dropdown.classList.remove('opened');
+      },
+      close: function() {
+        this.$.dropdown.classList.remove('opened');
+      },
+      toggle: function() {
+        if (this.$.dropdown.classList.contains('opened')) this.hide();
+        else this.show();
+      },
+
+      _openedChanged: function() {
+        if (this.opened === true) this.show();
+        else this.hide();
+      },
+
+      _forChanged: function() {
+        this._target = this.target;
+      },
+
+      _opacityChanged: function() {
+        this.$.background.style.opacity = this.backgroundOpacity;
+      },
+
+      updatePosition: function() {
+        this.debounce("update-position", this._updatePosition, 15);
+      },
+
+      _updatePosition: function() {
+        if (!this._target || !this.offsetParent)
+          return;
+
+        var offset = this.offset;
+        var parentRect = this.offsetParent.getBoundingClientRect();
+        var targetRect = this._target.getBoundingClientRect();
+        var thisRect = this.$.dropdown.getBoundingClientRect();
+        var horizontalOffset, verticalOffset;
+
+        switch (this.align) {
+          case 'start':
+          default:
+            horizontalOffset = 0;
+            verticalOffset = 0;
+            break;
+          case 'end':
+            horizontalOffset = targetRect.width - thisRect.width;
+            verticalOffset = targetRect.height - thisRect.height;
+            break;
+          case 'center':
+            horizontalOffset = (targetRect.width - thisRect.width) / 2;
+            verticalOffset = (targetRect.height - thisRect.height) / 2;
+            break;
+          case 'outer-start':
+            horizontalOffset = -thisRect.width;
+            verticalOffset = -thisRect.height;
+            break;
+          case 'outer-end':
+            horizontalOffset = targetRect.width;
+            verticalOffset = targetRect.height;
+            break;
+          case 'outer-center':
+            horizontalOffset = targetRect.width / 2;
+            verticalOffset = targetRect.height / 2;
+            break;
+        }
+
+        var targetLeft = targetRect.left - parentRect.left;
+        var targetTop = targetRect.top - parentRect.top;
+        var dropdownLeft, dropdownTop;
+
+        switch (this.position) {
+          case 'top':
+            dropdownLeft = targetLeft + horizontalOffset;
+            dropdownTop = targetTop - thisRect.height - offset;
+            break;
+          case 'bottom':
+            dropdownLeft = targetLeft + horizontalOffset;
+            dropdownTop = targetTop + targetRect.height + offset;
+            break;
+          case 'left':
+            dropdownLeft = targetLeft - thisRect.width - offset;
+            dropdownTop = targetTop + verticalOffset;
+            break;
+          case 'right':
+            dropdownLeft = targetLeft + targetRect.width + offset;
+            dropdownTop = targetTop + verticalOffset;
+            break;
+        }
+
+        // Clip the left/right side.
+        if (dropdownLeft + parentRect.left + thisRect.width + 8 > window.innerWidth) {
+          this.style.right = 'auto';
+          this.style.left = (window.innerWidth - (parentRect.left + thisRect.width + offset + 8)) + 'px';
+        } else if (dropdownLeft + targetRect.left < 0) {
+          this.style.left = (-targetRect.left) + 'px';
+          this.style.right = 'auto';
+        } else {
+          this.style.left = dropdownLeft + 'px';
+          this.style.right = 'auto';
+        }
+
+        // Clip the top/bottom side.
+        if (dropdownTop + thisRect.height + targetRect.top + 8 > window.innerHeight) {
+          this.style.bottom = 'auto';
+          this.style.top = (window.innerHeight - (thisRect.height + targetRect.top + offset + 8 )) + "px";
+        } else if (dropdownTop + targetRect.top < 0) {
+          this.style.top = (-targetRect.top) + 'px';
+          this.style.bottom = 'auto';
+        } else {
+          this.style.top = dropdownTop + 'px';
+          this.style.bottom = 'auto';
+        }
+      },
+
+      _keyHandler: function(e) {
+        switch (e.which) {
+          case 37:
+          case 39:
+          case 27: this.hide(); break;
+        }
+      }
+    });
+  </script>
+</dom-module>
